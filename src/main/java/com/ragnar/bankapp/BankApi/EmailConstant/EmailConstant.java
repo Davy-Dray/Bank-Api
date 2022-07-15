@@ -4,8 +4,8 @@ public class EmailConstant {
 
 
 	public static final String SIMPLE_MAIL_TRANSFER_PROTOCOL = "smtps";
-	public static final String USERNAME = "david.egbedina@stu.cu.edu.ng";
-	public static final String PASSWORD = "egbedi123";
+	public static final String USERNAME = "";
+	public static final String PASSWORD = "";
 	public static final String FROM_EMAIL = "cc@gmail.com";
 	public static final String EMAIL_SUBJECT = "TRANSACTION";
 	public static final String EMAIL_SMTP_SERVER = "smtp.gmail.com";

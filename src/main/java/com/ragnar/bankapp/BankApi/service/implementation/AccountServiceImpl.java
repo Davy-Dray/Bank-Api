@@ -8,10 +8,12 @@ import javax.mail.internet.AddressException;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ragnar.bankapp.BankApi.enums.AccountType;
 import com.ragnar.bankapp.BankApi.exception.AccountNotFound;
 import com.ragnar.bankapp.BankApi.exception.CustomerNotFoundExcepion;
+import com.ragnar.bankapp.BankApi.exception.InsufficientFundsException;
 import com.ragnar.bankapp.BankApi.model.Account;
 import com.ragnar.bankapp.BankApi.model.Customer;
 import com.ragnar.bankapp.BankApi.model.Transaction;
@@ -94,12 +96,12 @@ public class AccountServiceImpl implements AccountService {
 
 	}
 
-	public Account withdraw(String accountNumber, float amount) throws AccountNotFound {
+	public Account withdraw(String accountNumber, float amount) throws AccountNotFound, InsufficientFundsException {
 
 		Account account = checkAccount(accountNumber);
 
 		if (account.getCurrentbalance() < amount)
-			throw new RuntimeException("Insufficient funds. Please try a lower amount.");
+			throw new InsufficientFundsException("Insufficient funds. Please try a lower amount.");
 
 		account.setCurrentbalance(account.getCurrentbalance() - amount);
 
@@ -122,13 +124,19 @@ public class AccountServiceImpl implements AccountService {
 		createTransactionHistory("DEPOSIT", amount, account.getCurrentbalance(), account);
 
 		return account;
-
 	}
 
-	public void transfer(String sender, String reciver, float theAmount) throws AccountNotFound {
-		verifyer(sender, reciver, theAmount);
-		withdraw(sender, theAmount);
-		deposit(reciver, theAmount);
+	@Transactional
+	public void transfer(String sender, String receiver, float theAmount)
+			throws AccountNotFound, InsufficientFundsException {
+
+		verifyer(sender, receiver, theAmount);
+
+		Account from = withdraw(sender, theAmount);
+		createTransactionHistory("TRANSFER-DEBIT", theAmount, from.getCurrentbalance(), from);
+
+		Account to = deposit(receiver, theAmount);
+		createTransactionHistory("TRANSFER-CREDIT", theAmount, to.getCurrentbalance(), to);
 
 	}
 
